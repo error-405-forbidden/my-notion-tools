@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion 暗号化ツール</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
@@ -11,87 +10,71 @@
             --notion-border: #edece9;
             --accent: #2383e2;
         }
-        
-        html, body { height: 100%; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, sans-serif;
+            margin: 0;
+            padding: 8px; /* 最小限の余白 */
+            background-color: transparent;
             display: flex;
             justify-content: center;
-            align-items: center;
-            background-color: transparent;
+            align-items: flex-start; /* 上寄せ */
         }
-
         .card {
             background: var(--notion-bg);
             border: 1px solid var(--notion-border);
-            border-radius: 8px;
-            padding: 16px;
-            width: 95%;
-            max-width: 600px; /* 横長に使えるよう幅を広げました */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            padding: 12px;
+            width: 100%;
+            max-width: 600px;
         }
-
-        /* 1行目のレイアウト：パスワード、入力、ボタンを横に並べる */
+        /* 1段目：左に入力、右に縦並びボタン */
         .top-row {
             display: flex;
-            gap: 10px;
-            align-items: stretch;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
-
-        .input-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        
+        .input-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
         input, textarea {
             width: 100%;
             border: 1px solid var(--notion-border);
-            border-radius: 5px;
-            padding: 8px;
+            border-radius: 4px;
+            padding: 6px 8px;
             font-size: 13px;
             box-sizing: border-box;
             background: #fbfbfa;
         }
+        #masterPass { height: 30px; }
+        #inputField { height: 60px; resize: none; }
 
-        #inputField { height: 80px; resize: none; }
-
-        /* ボタンを縦に並べる */
         .btn-column {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            width: 100px;
+            gap: 4px;
+            width: 80px; /* ボタンの幅を最適化 */
         }
-
         button {
             flex: 1;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: white;
-            transition: opacity 0.2s;
         }
-
         .btn-enc { background-color: #37352f; }
         .btn-dec { background-color: var(--accent); }
-        button:hover { opacity: 0.8; }
 
-        /* 2行目のレイアウト：結果表示 */
-        .bottom-row {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .result-label { font-size: 11px; color: #888; margin-bottom: 4px; }
-        
+        /* 2段目：結果表示 */
+        .bottom-row { display: flex; flex-direction: column; }
+        .result-label { font-size: 10px; color: #aaa; margin-bottom: 2px; }
         #result { 
+            height: 50px; 
             background: #fcf6f6; 
             color: #eb5757; 
             font-family: monospace; 
             cursor: pointer; 
-            height: 60px;
-            border: 1px dashed var(--notion-border);
             resize: none;
+            border: 1px dashed var(--notion-border);
         }
     </style>
 </head>
@@ -101,7 +84,7 @@
     <div class="top-row">
         <div class="input-group">
             <input type="password" id="masterPass" placeholder="マスターパスワード">
-            <textarea id="inputField" placeholder="生のパスワード、または暗号文を入力"></textarea>
+            <textarea id="inputField" placeholder="生のパスワード、または暗号文"></textarea>
         </div>
         <div class="btn-column">
             <button class="btn-enc" onclick="run(true)">暗号化</button>
@@ -120,7 +103,6 @@
         const pass = document.getElementById('masterPass').value;
         const input = document.getElementById('inputField').value.trim();
         if (!pass || !input) return;
-
         try {
             if (isEncrypt) {
                 document.getElementById('result').value = CryptoJS.AES.encrypt(input, pass).toString();
@@ -129,7 +111,7 @@
                 if (!decrypted) throw new Error();
                 document.getElementById('result').value = decrypted;
             }
-        } catch (e) { alert("エラー：内容が正しくありません"); }
+        } catch (e) { alert("エラー：内容を確認してください"); }
     }
     function copyResult() {
         const res = document.getElementById('result');
