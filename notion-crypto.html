@@ -13,100 +13,103 @@
             --accent: #2383e2;
         }
         body {
-            font-family: -apple-system, sans-serif;
-            margin: 0;
-            padding: 2px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             background-color: transparent;
-            overflow: hidden;
-        }
-        .container {
+            color: var(--notion-text);
+            margin: 0;
             display: flex;
-            align-items: center; /* 縦方向を中央に */
-            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .card {
             background: var(--notion-bg);
             border: 1px solid var(--notion-border);
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 16px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .label { font-size: 11px; font-weight: bold; color: #888; white-space: nowrap; }
+        h4 { margin-top: 0; margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         input, textarea {
+            width: 100%;
             border: 1px solid var(--notion-border);
             border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            background: #fbfbfa;
+            padding: 8px;
+            font-size: 13px;
+            margin-bottom: 10px;
             box-sizing: border-box;
-            height: 28px; /* 高さを固定 */
+            background: #fbfbfa;
         }
-        #masterPass { width: 100px; flex-shrink: 0; }
-        #inputField { flex-grow: 1; resize: none; }
-        #result { 
-            flex-grow: 1; 
-            background: #fcf6f6; 
-            color: #eb5757; 
-            font-family: monospace; 
-            cursor: pointer;
-            resize: none;
-            border: 1px dashed #eb5757;
-        }
-        .btn-group { display: flex; gap: 4px; flex-shrink: 0; }
+        input:focus, textarea:focus { outline: 1px solid var(--accent); }
+        .button-group { display: flex; gap: 8px; }
         button {
-            padding: 4px 10px;
+            flex: 1;
+            padding: 8px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
+            transition: opacity 0.2s;
             color: white;
-            white-space: nowrap;
         }
-        .btn-enc { background-color: #37352f; }
-        .btn-dec { background-color: var(--accent); }
+        .btn-encrypt { background-color: #37352f; }
+        .btn-decrypt { background-color: var(--accent); }
         button:hover { opacity: 0.8; }
+        .result-label { font-size: 11px; color: #888; margin-top: 10px; margin-bottom: 4px; }
+        #result { background: #f7f6f3; color: #eb5757; font-family: monospace; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="label">鍵:</div>
-    <input type="password" id="masterPass" placeholder="パスワード">
+<div class="card">
+    <h4>🔒 自分専用・暗号化ツール</h4>
     
-    <div class="label">内容:</div>
-    <textarea id="inputField" placeholder="変換したい文字を入力"></textarea>
+    <input type="password" id="masterPass" placeholder="マスターパスワードを入力">
+    <textarea id="inputField" rows="3" placeholder="「生のパスワード」または「暗号化された文字列」を入力してください"></textarea>
     
-    <div class="btn-group">
-        <button class="btn-enc" onclick="run(true)">暗号化</button>
-        <button class="btn-dec" onclick="run(false)">復号</button>
+    <div class="button-group">
+        <button class="btn-encrypt" onclick="run(true)">暗号化する</button>
+        <button class="btn-decrypt" onclick="run(false)">復号する</button>
     </div>
 
-    <div class="label">結果:</div>
-    <textarea id="result" readonly onclick="copyResult()" placeholder="ここをクリックでコピー"></textarea>
+    <div class="result-label">結果（クリックでコピーできます）</div>
+    <textarea id="result" rows="3" readonly onclick="copyResult()" placeholder="ここに結果が表示されます"></textarea>
 </div>
 
 <script>
     function run(isEncrypt) {
         const pass = document.getElementById('masterPass').value;
         const input = document.getElementById('inputField').value.trim();
-        if (!pass || !input) return;
+        
+        if (!pass || !input) {
+            alert("パスワードと内容の両方を入力してください");
+            return;
+        }
 
         try {
             if (isEncrypt) {
-                document.getElementById('result').value = CryptoJS.AES.encrypt(input, pass).toString();
+                const encrypted = CryptoJS.AES.encrypt(input, pass).toString();
+                document.getElementById('result').value = encrypted;
             } else {
-                const decrypted = CryptoJS.AES.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
+                const bytes = CryptoJS.AES.decrypt(input, pass);
+                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
                 if (!decrypted) throw new Error();
                 document.getElementById('result').value = decrypted;
             }
-        } catch (e) { alert("失敗：パスワードが違います"); }
+        } catch (e) {
+            alert("エラー：パスワードが間違っているか、文字列が正しくありません");
+        }
     }
+
     function copyResult() {
         const res = document.getElementById('result');
-        if (res.value && res.value !== "失敗：パスワードが違います") {
+        if (res.value) {
             res.select();
             document.execCommand('copy');
-            const originalBg = res.style.background;
-            res.style.background = "#e7f3ff";
-            setTimeout(() => res.style.background = originalBg, 300);
+            alert("コピーしました！Notionに貼り付けてください。");
         }
     }
 </script>
