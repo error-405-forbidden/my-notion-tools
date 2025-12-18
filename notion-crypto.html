@@ -12,54 +12,87 @@
             --notion-border: #edece9;
             --accent: #2383e2;
         }
+        
+        /* 画面の真ん中に配置するための設定 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: transparent;
+            background-color: transparent; /* Notionの背景を活かす */
             color: var(--notion-text);
-            margin: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            justify-content: center; /* 左右の中央 */
+            align-items: center;     /* 上下の中央 */
         }
+
         .card {
             background: var(--notion-bg);
             border: 1px solid var(--notion-border);
             border-radius: 8px;
-            padding: 16px;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 380px; /* PCで見ても間延びしない適切な幅 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* ほんの少し影をつけて見やすく */
         }
-        h4 { margin-top: 0; margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+
+        h4 { margin-top: 0; margin-bottom: 16px; font-size: 15px; text-align: center; }
+        
         input, textarea {
             width: 100%;
             border: 1px solid var(--notion-border);
-            border-radius: 4px;
-            padding: 8px;
+            border-radius: 5px;
+            padding: 10px;
             font-size: 13px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             box-sizing: border-box;
             background: #fbfbfa;
+            display: block;
         }
-        input:focus, textarea:focus { outline: 1px solid var(--accent); }
-        .button-group { display: flex; gap: 8px; }
+
+        input:focus, textarea:focus { 
+            outline: none; 
+            border-color: var(--accent);
+            background: #fff;
+        }
+
+        .button-group { display: flex; gap: 10px; margin-bottom: 5px; }
+        
         button {
             flex: 1;
-            padding: 8px;
+            padding: 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
             color: white;
         }
+
         .btn-encrypt { background-color: #37352f; }
         .btn-decrypt { background-color: var(--accent); }
-        button:hover { opacity: 0.8; }
-        .result-label { font-size: 11px; color: #888; margin-top: 10px; margin-bottom: 4px; }
-        #result { background: #f7f6f3; color: #eb5757; font-family: monospace; cursor: pointer; }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        .result-label { 
+            font-size: 11px; 
+            color: #888; 
+            margin-top: 15px; 
+            margin-bottom: 5px; 
+            text-align: left;
+        }
+        
+        #result { 
+            background: #f7f6f3; 
+            color: #eb5757; 
+            font-family: 'Courier New', monospace; 
+            cursor: pointer; 
+            margin-bottom: 0;
+            border: 1px dashed var(--notion-border);
+        }
     </style>
 </head>
 <body>
@@ -68,14 +101,14 @@
     <h4>🔒 自分専用・暗号化ツール</h4>
     
     <input type="password" id="masterPass" placeholder="マスターパスワードを入力">
-    <textarea id="inputField" rows="3" placeholder="「生のパスワード」または「暗号化された文字列」を入力してください"></textarea>
+    <textarea id="inputField" rows="3" placeholder="「生のパスワード」または「暗号化された文字列」を入力"></textarea>
     
     <div class="button-group">
         <button class="btn-encrypt" onclick="run(true)">暗号化する</button>
         <button class="btn-decrypt" onclick="run(false)">復号する</button>
     </div>
 
-    <div class="result-label">結果（クリックでコピーできます）</div>
+    <div class="result-label">結果（クリックでコピー）</div>
     <textarea id="result" rows="3" readonly onclick="copyResult()" placeholder="ここに結果が表示されます"></textarea>
 </div>
 
@@ -85,7 +118,7 @@
         const input = document.getElementById('inputField').value.trim();
         
         if (!pass || !input) {
-            alert("パスワードと内容の両方を入力してください");
+            alert("パスワードと内容を入力してください");
             return;
         }
 
@@ -100,7 +133,7 @@
                 document.getElementById('result').value = decrypted;
             }
         } catch (e) {
-            alert("エラー：パスワードが間違っているか、文字列が正しくありません");
+            alert("エラー：鍵が違うか、データが正しくありません");
         }
     }
 
@@ -109,7 +142,10 @@
         if (res.value) {
             res.select();
             document.execCommand('copy');
-            alert("コピーしました！Notionに貼り付けてください。");
+            // コピーした際の視覚的なフィードバック
+            const originalBg = res.style.background;
+            res.style.background = "#e7f3ff";
+            setTimeout(() => { res.style.background = originalBg; }, 300);
         }
     }
 </script>
