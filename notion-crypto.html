@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Private Encryptor</title>
+    <title>Compact Crypto</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
@@ -13,104 +13,107 @@
             --accent: #2383e2;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: transparent; /* Notionの背景に馴染ませる */
-            color: var(--notion-text);
+            font-family: -apple-system, sans-serif;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 5px; /* 余白を最小限に */
+            background-color: transparent;
+            overflow: hidden; /* スクロールバーを隠す */
         }
-        .card {
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
             background: var(--notion-bg);
             border: 1px solid var(--notion-border);
-            border-radius: 8px;
-            padding: 16px;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            padding: 10px;
         }
-        h4 { margin-top: 0; margin-bottom: 12px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        /* 上段：マスターパスワードと入力欄を横並びに */
+        .input-row {
+            display: flex;
+            gap: 5px;
+        }
         input, textarea {
-            width: 100%;
             border: 1px solid var(--notion-border);
             border-radius: 4px;
-            padding: 8px;
+            padding: 6px 8px;
             font-size: 13px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
             background: #fbfbfa;
+            box-sizing: border-box;
         }
-        input:focus, textarea:focus { outline: 1px solid var(--accent); }
-        .button-group { display: flex; gap: 8px; }
+        #masterPass { width: 120px; flex-shrink: 0; }
+        #inputField { flex-grow: 1; height: 32px; resize: none; }
+
+        /* 中段：ボタンと結果欄を横並びに */
+        .action-row {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
         button {
-            flex: 1;
-            padding: 8px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
             font-weight: 600;
-            transition: opacity 0.2s;
+            color: white;
+            white-space: nowrap;
         }
-        .btn-encrypt { background-color: #37352f; color: white; }
-        .btn-decrypt { background-color: var(--accent); color: white; }
-        button:hover { opacity: 0.8; }
-        .result-label { font-size: 11px; color: #888; margin-top: 10px; margin-bottom: 4px; }
-        #result { background: #f7f6f3; color: #eb5757; font-family: monospace; cursor: pointer; }
+        .btn-enc { background-color: #37352f; }
+        .btn-dec { background-color: var(--accent); }
+        #result { 
+            flex-grow: 1; 
+            height: 32px; 
+            background: #f7f6f3; 
+            color: #eb5757; 
+            font-family: monospace; 
+            cursor: pointer;
+            resize: none;
+        }
+        .copy-hint { font-size: 10px; color: #aaa; text-align: right; margin-top: -3px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h4>🔒 暗号化ツール</h4>
-    
-    <input type="password" id="masterPass" placeholder="マスターパスワード">
-    <textarea id="inputField" rows="3" placeholder="パスワード(平文) または 暗号化された文字列を入力"></textarea>
-    
-    <div class="button-group">
-        <button class="btn-encrypt" onclick="run(true)">暗号化実行</button>
-        <button class="btn-decrypt" onclick="run(false)">復号（解除）</button>
+<div class="container">
+    <div class="input-row">
+        <input type="password" id="masterPass" placeholder="Master Key">
+        <textarea id="inputField" placeholder="Input text or hash..."></textarea>
     </div>
-
-    <div class="result-label">結果 (クリックでコピー)</div>
-    <textarea id="result" rows="3" readonly onclick="copyResult()" placeholder="ここに結果が表示されます"></textarea>
+    
+    <div class="action-row">
+        <button class="btn-enc" onclick="run(true)">暗号化</button>
+        <button class="btn-dec" onclick="run(false)">復号</button>
+        <textarea id="result" readonly onclick="copyResult()" placeholder="Result..."></textarea>
+    </div>
+    <div class="copy-hint">Click result to copy</div>
 </div>
 
 <script>
     function run(isEncrypt) {
         const pass = document.getElementById('masterPass').value;
         const input = document.getElementById('inputField').value.trim();
-        
-        if (!pass || !input) {
-            alert("パスワードと内容の両方を入力してください");
-            return;
-        }
+        if (!pass || !input) return;
 
         try {
             if (isEncrypt) {
-                // 暗号化処理
-                const encrypted = CryptoJS.AES.encrypt(input, pass).toString();
-                document.getElementById('result').value = encrypted;
+                document.getElementById('result').value = CryptoJS.AES.encrypt(input, pass).toString();
             } else {
-                // 復号処理
-                const bytes = CryptoJS.AES.decrypt(input, pass);
-                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                const decrypted = CryptoJS.AES.decrypt(input, pass).toString(CryptoJS.enc.Utf8);
                 if (!decrypted) throw new Error();
                 document.getElementById('result').value = decrypted;
             }
-        } catch (e) {
-            alert("エラー：パスワードが間違っているか、文字列が正しくありません");
-        }
+        } catch (e) { alert("Error!"); }
     }
-
     function copyResult() {
         const res = document.getElementById('result');
         if (res.value) {
             res.select();
             document.execCommand('copy');
-            alert("クリップボードにコピーしました");
+            // 一瞬色を変えてコピー完了を知らせる
+            res.style.background = "#e7f3ff";
+            setTimeout(() => res.style.background = "#f7f6f3", 200);
         }
     }
 </script>
